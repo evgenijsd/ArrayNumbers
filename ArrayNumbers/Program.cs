@@ -10,7 +10,7 @@ namespace ArrayNumbers
         const int max_row = 9;
         const int max_column = 9;
 
-        static bool CheckingLine(int value, int count, Element element, ArrayNumbers datas, ArrayСonditions conditions)
+        static bool CheckingLine(int value, int count, Element element, ArrayNumbers data, ArrayStates states)
         {
             var nextElement = new Element(
                 element.Row + element.BiasRow, 
@@ -27,21 +27,21 @@ namespace ArrayNumbers
                 nextElement.Row > -1 && 
                 nextElement.Column > -1)
             {
-                int nextValue = datas.DataArray[nextElement.Row, nextElement.Column];
-                bool checkNext = conditions.DataCondition[nextElement.Row, nextElement.Column];
+                int nextValue = data.DataArray[nextElement.Row, nextElement.Column];
+                bool checkNext = states.DataCondition[nextElement.Row, nextElement.Column];
 
                 if (nextValue == value && !checkNext)
                 {
                     count++;
-                    check = CheckingLine(value, count, nextElement, datas, conditions);                    
+                    check = CheckingLine(value, count, nextElement, data, states);                    
                 }                               
             }
 
-            conditions.DataCondition[element.Row, element.Column] = check;
+            states.DataCondition[element.Row, element.Column] = check;
             return check;
         }
 
-        static void MoveElement(Element element, ArrayNumbers datas, ArrayСonditions conditions)
+        static void MoveElement(Element element, ArrayNumbers datas, ArrayStates states)
         {
             var nextElement = new Element(
                 element.Row + element.BiasRow, 
@@ -55,65 +55,65 @@ namespace ArrayNumbers
                 nextElement.Row > -1 && 
                 nextElement.Column > -1)
             {
-                if (!conditions.DataCondition[nextElement.Row, nextElement.Column])
+                if (!states.DataCondition[nextElement.Row, nextElement.Column])
                 {
                     int value = datas.DataArray[element.Row, element.Column];
-                    conditions.DataCondition[element.Row, element.Column] = false;
+                    states.DataCondition[element.Row, element.Column] = false;
                     datas.DataArray[element.Row, element.Column] = datas.DataArray[nextElement.Row, nextElement.Column];
                     element.Row = nextElement.Row;
                     element.Column = nextElement.Column;
-                    conditions.DataCondition[element.Row, element.Column] = true;                                        
+                    states.DataCondition[element.Row, element.Column] = true;                                        
                     datas.DataArray[element.Row, element.Column] = value;
-                    MoveElement(element, datas, conditions);
+                    MoveElement(element, datas, states);
                 }
             }
         }
 
         static void Main(string[] args)
         {
-            var datas = new ArrayNumbers(max_row, max_column);
-            var conditions = new ArrayСonditions(max_row, max_column);
+            var data = new ArrayNumbers(max_row, max_column);
+            var states = new ArrayStates(max_row, max_column);
             var random = new Random();
-            var listConditions = new List<Element>();
+            var listStates = new List<Element>();
 
             do
             {
-                listConditions.Clear();
+                listStates.Clear();
 
                 for (int i = 0; i < max_row; i++)
                 {
                     for (int j = 0; j < max_column; j++)
                     {
-                        if (!conditions.DataCondition[i, j])
+                        if (!states.DataCondition[i, j])
                         {
                             var nextElement = new Element(i, j, 0, 1);
-                            var value = datas.DataArray[i, j];
+                            var value = data.DataArray[i, j];
 
-                            conditions.DataCondition[i, j] = CheckingLine(value, 1, nextElement, datas, conditions);
+                            states.DataCondition[i, j] = CheckingLine(value, 1, nextElement, data, states);
 
-                            if (!conditions.DataCondition[i, j])
+                            if (!states.DataCondition[i, j])
                             {
                                 nextElement = new Element(i, j, 1, 0);
-                                conditions.DataCondition[i, j] = CheckingLine(value, 1, nextElement, datas, conditions);
+                                states.DataCondition[i, j] = CheckingLine(value, 1, nextElement, data, states);
                             }
                         }
 
-                        if (conditions.DataCondition[i, j]) listConditions.Add(new Element(i, j, -1, 0));
+                        if (states.DataCondition[i, j]) listStates.Add(new Element(i, j, -1, 0));
                     }
                 }
 
-                foreach (var element in listConditions)
+                foreach (var element in listStates)
                 {
-                    MoveElement(element, datas, conditions);
+                    MoveElement(element, data, states);
                 }
 
-                foreach (var element in listConditions)
+                foreach (var element in listStates)
                 {
-                    conditions.DataCondition[element.Row, element.Column] = false;
-                    datas.DataArray[element.Row, element.Column] = random.Next(0, 4);
+                    states.DataCondition[element.Row, element.Column] = false;
+                    data.DataArray[element.Row, element.Column] = random.Next(0, 4);
                 }
             }
-            while (listConditions.Count > 0);
+            while (listStates.Count > 0);
 
             Console.WriteLine();
 
@@ -121,7 +121,7 @@ namespace ArrayNumbers
             {
                 for (int j = 0; j < max_column; j++)
                 {
-                    Console.Write($" {datas.DataArray[i, j]}");
+                    Console.Write($" {data.DataArray[i, j]}");
                 }
                 Console.WriteLine();
             }
@@ -129,7 +129,7 @@ namespace ArrayNumbers
             using (StreamWriter file = File.CreateText("array_numbers_log.json"))
             {
                 JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, datas);
+                serializer.Serialize(file, data);
                 Console.WriteLine();
                 Console.WriteLine(" Data has been saved to file. Press any key...");
                 Console.ReadKey();

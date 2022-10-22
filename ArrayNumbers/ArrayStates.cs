@@ -4,11 +4,11 @@ using System.Text;
 
 namespace ArrayNumbers
 {
-    public class ArrayСonditions
+    public class ArrayStates
     {
         public bool[,] DataCondition { get; set; }
 
-        public ArrayСonditions(int rows, int colums)
+        public ArrayStates(int rows, int colums)
         {
             DataCondition = new bool[rows, colums];
         }
